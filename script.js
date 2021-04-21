@@ -90,9 +90,14 @@ function getSkuFromProductItem(item) {
   return item.querySelector('span.item__sku').innerText;
 }
 
-// function cartItemClickListener(event) {
-//   // coloque seu código aqui
-// }
+/*
+  Essa função recebe um evento "click" disparado por um cartItem e o remove do carrinho
+ */
+function cartItemClickListener(event) {
+  const li = event.target; // armazena o elemento li que disparou o evento
+  const ol = li.parentElement; // obtem o elemento ol deste li
+  ol.removeChild(li); // e remove o filho li de ol
+}
 
 /*
   Essa função desestrutura um objeto item detalhado, cria um elemento HTML li contendo sku, name e salePrice, adiciona um escutador de eventos "click" e o retorna
@@ -101,7 +106,7 @@ function createCartItemElement({ id: sku, title: name, price: salePrice }) {
   const li = document.createElement('li');
   li.className = 'cart__item';
   li.innerText = `SKU: ${sku} | NAME: ${name} | PRICE: $${salePrice}`;
-  // li.addEventListener('click', cartItemClickListener);
+  li.addEventListener('click', cartItemClickListener);
   return li;
 }
 
@@ -131,7 +136,7 @@ const renderCartItemElement = (cartItem) => {
 };
 
 /*
-  Essa função recebe um evento "click" disparado por um button de um item
+  Essa função recebe um evento "click" disparado por um button de um item, obtém item e constrói um elemento HTML cartItem com itemDetails usando a API e o adiciona como filho no elemento ol que possui a classe "cart__items"
  */
 const itemAddButtonClickListener = async (event) => {
   const button = event.target; // armazena o elemento button que disparou o evento
