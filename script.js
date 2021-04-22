@@ -25,30 +25,26 @@ function createCustomElement(element, className, innerText) {
 function createProductItemElement({ id: sku, title: name, thumbnail: image }) {
   const section = document.createElement('section');
   section.className = 'item';
-
   section.appendChild(createCustomElement('span', 'item__sku', sku));
   section.appendChild(createCustomElement('span', 'item__title', name));
   section.appendChild(createProductImageElement(image));
   section.appendChild(
     createCustomElement('button', 'item__add', 'Adicionar ao carrinho!'),
   );
-
   return section;
 }
+
 /*
   Essa função recebe uma url, consulta na API e retorna o objeto JSON resultado do sucesso de uma Promise do processamento da stream response
 */
 const fetchAPI = async (url) => {
-  // busca os resultados de uma Promise de consulta usando a api do mercado livre e um termo recebido como parâmetro
-  const response = await fetch(url);
+  const response = await fetch(url); // busca os resultados de uma Promise de consulta usando a api do mercado livre e um termo recebido como parâmetro
 
-  // retorna o objeto JSON resultado do sucesso de uma Promise do processamento da stream response
-  return response.json();
+  return response.json(); // retorna o objeto JSON resultado do sucesso de uma Promise do processamento da stream response
 };
 
 /*
   Essa função retorna uma lista dos itens relacionados com uma consulta que contém o termo (palavra) passado como parâmetro.
-
   Créditos pela explicação sobre async/await e .then():
   @Henrique Clementino - Turma 10 - Tribo B 
   @Janaina Oliveira - Turma 10 - Tribo B 
@@ -59,16 +55,11 @@ const createProductsList = async (query = 'computador') => {
   const { results } = await fetchAPI(
     `https://api.mercadolibre.com/sites/MLB/search?q=${query}`,
   );
-
   return results; // retorna uma lista de produtos
-  //  const response = await fetch(`https://api.mercadolibre.com/sites/MLB/search?q=${query}`);
-  //  const { results } = await response.json();
-  //  console.log(results);
 };
 
 /*
   Essa função recebe uma lista de produtos e renderiza seus elementos.
-
   Créditos pela explicação sobre destructuring:
   @Henrique Clementino - Turma 10 - Tribo B
 */
@@ -89,6 +80,7 @@ const renderProductsList = (productsList) => {
 function getSkuFromProductItem(item) {
   return item.querySelector('span.item__sku').innerText;
 }
+
 /*
   Essa função recebe o "sku" de um cartItem e o remove de localStorage
   Versão 2 que resolve Requisito 4
@@ -107,41 +99,58 @@ const removeCartItemInLocalStorage = (sku) => localStorage.removeItem(sku); // r
     Essa função recebe um cartItem (formato texto) e retorna o objeto item que o originou
     Versão 1 que resolve Requisito 4
    */
-/*   const cartItemTextToItemObject = (cartItemText) => {
-    const cartItemEntries = cartItemText.replace('$', '') // retira o $ que acompanha o preço
+const cartItemTextToItemObject = (cartItemText) => {
+  const cartItemEntries = cartItemText
+    .replace('$', '') // retira o $ que acompanha o preço
     .replace('SKU', 'id') // substitui 'SKU' por 'id'
     .replace('NAME', 'title') // substitui 'NAME' por 'title'
     .replace('PRICE', 'price') // substitui 'PRICE' por 'price'
     .split(' | ') // divide o texto em lista onde cada posição é uma entrada de cartItem no formato texto
-    .map( // cria uma lista onde cada posição é
+    .map(
+      // cria uma lista onde cada posição é
       (phrase) => phrase.split(': '), // a divisão de cada phrase em lista sendo posição 0 a key e posição 1 o value
-      );
-    return Object.fromEntries(cartItemEntries); // retorna um objeto item a partir das entradas em cartItemEntries
-  }; */
+    );
+  return Object.fromEntries(cartItemEntries); // retorna um objeto item a partir das entradas em cartItemEntries
+};
 
 /*
    Essa função recebe um cartItem (formato texto), divide o texto em substrings usando o delimitador ' ' e retorna sku dele
    Versão 2 que resolve Requisito 4
   */
-const getSkuFromCartItemText = (cartItemText) => cartItemText.split(' ')[1]; // divide o texto em substrings usando o delimitador ' ' e retorna a posição da sku dele
+/* const getSkuFromCartItemText = (cartItemText) => cartItemText.split(' ')[1]; // divide o texto em substrings usando o delimitador ' ' e retorna a posição da sku dele */
+
+/*
+  Essa função desestrutura um objeto itemDetails recebido e atualiza o preço total dos itens do carrinho
+*/
+const updateTotalPriceByCart = ({ price: cartItemPrice }) => {
+  const idCartTotalPrice = document.querySelector('#cart__total-price'); // obtem o elemento HTML que contém o preço total corrente
+  let totalPrice = parseFloat(idCartTotalPrice.innerText); // e obtem o preço total, converte para float e armazena em totalPrice
+  totalPrice += cartItemPrice; // atualiza o preço total no carrinho
+  idCartTotalPrice.innerText = totalPrice.toFixed(2); // fixa duas casas decimais
+};
 
 /*
   Essa função recebe um evento "click" disparado por um cartItem e o remove do carrinho
+
+  /// Versão 1 que resolve Requisito 4 ///
+  const item = cartItemTextToItemObject(cartItemText); // constrói o objeto item que originou cartItem
+  removeCartItemInLocalStorage(item); // remove o cartItem de localStorage
+
+  /// Versão 2 que resolve Requisito 4 ///
+  const cartItemSku = getSkuFromCartItemText(cartItemText); // obtem o sku de cartItem
+  removeCartItemInLocalStorage(cartItemSku); // remove o cartItem de localStorage
  */
 function cartItemClickListener(event) {
   const li = event.target; // armazena o elemento li que disparou o evento
   const ol = li.parentElement; // obtem o elemento ol deste li
   const cartItemText = li.innerText; // obtem o texto de cartItem
-  /*
-  /// Versão 1 que resolve Requisito 4 ///
+
+  /// Versão 3 que resolve Requisitos 4 e 5 ///
   const item = cartItemTextToItemObject(cartItemText); // constrói o objeto item que originou cartItem
-  removeCartItemInLocalStorage(item); // remove o cartItem de localStorage  
-  */
+  const { id, title, price } = item;
+  removeCartItemInLocalStorage(id); // remove o cartItem de localStorage
 
-  /// Versão 2 que resolve Requisito 4 ///
-  const cartItemSku = getSkuFromCartItemText(cartItemText); // obtem o sku de cartItem
-  removeCartItemInLocalStorage(cartItemSku); // remove o cartItem de localStorage
-
+  updateTotalPriceByCart({ id, title, price: price * -1 }); // atualiza o preço total no carrinho, considerando o preço negativo do item uma vez que será retirado do carrinho
   ol.removeChild(li); // e remove o filho li de ol
 }
 
@@ -166,15 +175,13 @@ function createCartItemElement({ id: sku, title: name, price: salePrice }) {
 /*
   Função criada para retornar o item que possui o button clicado
 
-  Versão substituída por getSkuFromProductItem
+  /// Versão 1 que resolve Requisito 2 e que foi substituída por getSkuFromProductItem
 
 const searchItemSkuByClickedButton = (button) => {
   let nodeItem = button.previousElementSibling; // armazena o node pertencente ao item e que é anterior ao button que disparou ao evento
-
   while (nodeItem.className !== 'item__sku') { // enquanto o nome da classe de node for diferente de 'item__sku'
     nodeItem = nodeItem.previousElementSibling; // avance para o node anterior
   }
-
   return nodeItem; // retorna o node que possui a classe 'item_sku'
 };
 */
@@ -184,42 +191,41 @@ const searchItemSkuByClickedButton = (button) => {
  */
 const renderCartItemElement = (cartItem) => {
   const ol = document.querySelector('.cart__items'); // obtem o elemento ol que possui a classe 'cart__items'
-
   ol.appendChild(cartItem); // e adiciona o elemento HTML cartItem com seu filho
 };
 
 /*
   Essa função recebe um evento "click" disparado por um button de um item, obtém item e constrói um elemento HTML cartItem com itemDetails usando a API e o adiciona como filho no elemento ol que possui a classe "cart__items"
+
+  /// Versão 1 que resolve Requisito 2 ///
+  busca o itemSku que possui o button que disparou o evento e armazena em itemID
+  const itemID = searchItemSkuByClickedButton(button).innerText;
  */
 const itemAddButtonClickListener = async (event) => {
   const button = event.target; // armazena o elemento button que disparou o evento
-
   const item = button.parentElement; // obtem o section item deste button
 
+  /// Versão 2 que resolve Requisito 2 ///
   const itemID = getSkuFromProductItem(item); // busca o itemSku deste item
 
-  // busca o itemSku que possui o button que disparou o evento e armazena em itemID
-  // const itemID = searchItemSkuByClickedButton(button).innerText;
-  // busca o resultado de uma Promise de consulta usando a api do mercado livre e o id do item que disparou o evento e armazena os detalhes deste item
   const itemDetails = await fetchAPI(
     `https://api.mercadolibre.com/items/${itemID}`,
-  );
+  ); // busca o resultado de uma Promise de consulta usando a api do mercado livre e o id do item que disparou o evento e armazena os detalhes deste item
 
   addCartItemInLocalStorage(itemDetails); // adiciona cartItem em localStorage
-
   const cartItem = createCartItemElement(itemDetails); // cria um elemento HTML cartItem com itemDetails
-
+  updateTotalPriceByCart(itemDetails); // atualiza o preço total no carrinho
   renderCartItemElement(cartItem); // e o adiciona como filho no elemento ol que possui a classe 'cart__items'
 };
+
 /*
   Essa função carrega o carrinho de compras através do LocalStorage
  */
 const loadCartItemsFromLocalStorage = () => {
   Object.keys(localStorage).forEach((id) => {
     const { title, price } = JSON.parse(localStorage.getItem(id)); // obtém, constrói e desestrutura o objeto que contém o título e o preço associado ao id do cartItem
-
     const cartItem = createCartItemElement({ id, title, price }); // cria um elemento HTML cartItem a partir do objeto itemDetails construído com dados de localStorage
-
+    updateTotalPriceByCart({ id, title, price }); // atualiza o preço total no carrinho
     renderCartItemElement(cartItem); // e o adiciona como filho no elemento ol que possui a classe 'cart__items'
   });
 };
@@ -228,19 +234,15 @@ const loadCartItemsFromLocalStorage = () => {
    Essa função executa a configuração relacionada aos eventos, como por exemplo, escutadores de eventos.
   */
 const setupEvents = () => {
-  // obtém os elementos button que possuem a classe 'item__add' e armazena em itemAddButtonList
-  const itemAddButtonList = document.querySelectorAll('.item__add');
+  const itemAddButtonList = document.querySelectorAll('.item__add'); // obtém os elementos button que possuem a classe 'item__add' e armazena em itemAddButtonList
 
-  // adiciona um escutador de evento "click" que dispara a function itemAddButtonClickListener para cada elemento button em itemAddButtonList
   itemAddButtonList.forEach((button) =>
-    button.addEventListener('click', itemAddButtonClickListener));
+    button.addEventListener('click', itemAddButtonClickListener)); // adiciona um escutador de evento "click" que dispara a function itemAddButtonClickListener para cada elemento button em itemAddButtonList
 };
 
 window.onload = async function onload() {
   // cria e renderiza a lista de produtos relacionados com uma consulta que contém o termo (palavra) passado como parâmetro
   renderProductsList(await createProductsList());
-
   loadCartItemsFromLocalStorage(); // carrega o carrinho de compras através do LocalStorage ao iniciar a página
-
   setupEvents(); // realiza setup relacionado a eventos
 };
