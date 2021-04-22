@@ -89,6 +89,41 @@ const renderProductsList = (productsList) => {
 function getSkuFromProductItem(item) {
   return item.querySelector('span.item__sku').innerText;
 }
+/*
+  Essa função recebe o "sku" de um cartItem e o remove de localStorage
+  Versão 2 que resolve Requisito 4
+ */
+const removeCartItemInLocalStorage = (sku) => localStorage.removeItem(sku); // remove o cartItem de localStorage
+
+/*
+  Essa função desestrutura um objeto cartItem recebido e o remove de localStorage
+  Versão 1 que resolve Requisito 4
+ */
+/* const removeCartItemInLocalStorage = ({ id: sku }) => {
+  localStorage.removeItem(sku); // remove o cartItem de localStorage
+}; */
+
+/*
+    Essa função recebe um cartItem (formato texto) e retorna o objeto item que o originou
+    Versão 1 que resolve Requisito 4
+   */
+/*   const cartItemTextToItemObject = (cartItemText) => {
+    const cartItemEntries = cartItemText.replace('$', '') // retira o $ que acompanha o preço
+    .replace('SKU', 'id') // substitui 'SKU' por 'id'
+    .replace('NAME', 'title') // substitui 'NAME' por 'title'
+    .replace('PRICE', 'price') // substitui 'PRICE' por 'price'
+    .split(' | ') // divide o texto em lista onde cada posição é uma entrada de cartItem no formato texto
+    .map( // cria uma lista onde cada posição é
+      (phrase) => phrase.split(': '), // a divisão de cada phrase em lista sendo posição 0 a key e posição 1 o value
+      );
+    return Object.fromEntries(cartItemEntries); // retorna um objeto item a partir das entradas em cartItemEntries
+  }; */
+
+/*
+   Essa função recebe um cartItem (formato texto), divide o texto em substrings usando o delimitador ' ' e retorna sku dele
+   Versão 2 que resolve Requisito 4
+  */
+const getSkuFromCartItemText = (cartItemText) => cartItemText.split(' ')[1]; // divide o texto em substrings usando o delimitador ' ' e retorna a posição da sku dele
 
 /*
   Essa função recebe um evento "click" disparado por um cartItem e o remove do carrinho
@@ -96,8 +131,26 @@ function getSkuFromProductItem(item) {
 function cartItemClickListener(event) {
   const li = event.target; // armazena o elemento li que disparou o evento
   const ol = li.parentElement; // obtem o elemento ol deste li
+  const cartItemText = li.innerText; // obtem o texto de cartItem
+  /*
+  /// Versão 1 que resolve Requisito 4 ///
+  const item = cartItemTextToItemObject(cartItemText); // constrói o objeto item que originou cartItem
+  removeCartItemInLocalStorage(item); // remove o cartItem de localStorage  
+  */
+
+  /// Versão 2 que resolve Requisito 4 ///
+  const cartItemSku = getSkuFromCartItemText(cartItemText); // obtem o sku de cartItem
+  removeCartItemInLocalStorage(cartItemSku); // remove o cartItem de localStorage
+
   ol.removeChild(li); // e remove o filho li de ol
 }
+
+/*
+  Essa função desestrutura um objeto cartItem recebido e insere em localStorage
+ */
+const addCartItemInLocalStorage = ({ id, title, price }) => {
+  localStorage.setItem(id, JSON.stringify({ title, price }));
+};
 
 /*
   Essa função desestrutura um objeto item detalhado, cria um elemento HTML li contendo sku, name e salePrice, adiciona um escutador de eventos "click" e o retorna
@@ -147,10 +200,12 @@ const itemAddButtonClickListener = async (event) => {
 
   // busca o itemSku que possui o button que disparou o evento e armazena em itemID
   // const itemID = searchItemSkuByClickedButton(button).innerText;
-  // busca o resultado de uma Promise de consulta usando a api do mercado livre e o id do item que disparou o evento e  // armazena os detalhes deste item
+  // busca o resultado de uma Promise de consulta usando a api do mercado livre e o id do item que disparou o evento e armazena os detalhes deste item
   const itemDetails = await fetchAPI(
     `https://api.mercadolibre.com/items/${itemID}`,
   );
+
+  addCartItemInLocalStorage(itemDetails); // adiciona cartItem em localStorage
 
   const cartItem = createCartItemElement(itemDetails); // cria um elemento HTML cartItem com itemDetails
 
