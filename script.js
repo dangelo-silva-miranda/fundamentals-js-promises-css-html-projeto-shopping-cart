@@ -223,7 +223,7 @@ const emptyCartButtonClickListener = (event) => {
   const button = event.target; // armazena o elemento button que disparou o evento
   const cart = button.parentElement; // obtem o section cart deste button
   const olCartItems = cart.querySelector('ol.cart__items'); // obtem o elemento ol que possui a classe 'cart__items'
-  olCartItems.replaceChildren(); // apaga todos os cartItems de ol
+  olCartItems.textContent = ''; // replaceChildren(); // apaga todos os cartItems de ol
   const cartTotalPrice = cart.querySelector('span.total-price'); // obtem o elemento span que armazena o preço total do carrinho
   cartTotalPrice.innerText = 0; // atualiza o preço total na página HTML
   localStorage.clear(); // apaga todos os cartItems salvos em localStorage
