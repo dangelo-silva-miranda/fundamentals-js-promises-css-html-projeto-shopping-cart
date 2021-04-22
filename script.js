@@ -211,6 +211,18 @@ const itemAddButtonClickListener = async (event) => {
 
   renderCartItemElement(cartItem); // e o adiciona como filho no elemento ol que possui a classe 'cart__items'
 };
+/*
+  Essa função carrega o carrinho de compras através do LocalStorage
+ */
+const loadCartItemsFromLocalStorage = () => {
+  Object.keys(localStorage).forEach((id) => {
+    const { title, price } = JSON.parse(localStorage.getItem(id)); // obtém, constrói e desestrutura o objeto que contém o título e o preço associado ao id do cartItem
+
+    const cartItem = createCartItemElement({ id, title, price }); // cria um elemento HTML cartItem a partir do objeto itemDetails construído com dados de localStorage
+
+    renderCartItemElement(cartItem); // e o adiciona como filho no elemento ol que possui a classe 'cart__items'
+  });
+};
 
 /*
    Essa função executa a configuração relacionada aos eventos, como por exemplo, escutadores de eventos.
@@ -227,6 +239,8 @@ const setupEvents = () => {
 window.onload = async function onload() {
   // cria e renderiza a lista de produtos relacionados com uma consulta que contém o termo (palavra) passado como parâmetro
   renderProductsList(await createProductsList());
+
+  loadCartItemsFromLocalStorage(); // carrega o carrinho de compras através do LocalStorage ao iniciar a página
 
   setupEvents(); // realiza setup relacionado a eventos
 };
