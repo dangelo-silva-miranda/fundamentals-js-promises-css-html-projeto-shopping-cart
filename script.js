@@ -123,10 +123,10 @@ const cartItemTextToItemObject = (cartItemText) => {
   Essa função desestrutura um objeto itemDetails recebido e atualiza o preço total dos itens do carrinho
 */
 const updateTotalPriceByCart = ({ price: cartItemPrice }) => {
-  const idCartTotalPrice = document.querySelector('#cart__total-price'); // obtem o elemento HTML que contém o preço total corrente
+  const idCartTotalPrice = document.querySelector('.total-price'); // obtem o elemento HTML que contém o preço total corrente
   let totalPrice = parseFloat(idCartTotalPrice.innerText); // e obtem o preço total, converte para float e armazena em totalPrice
   totalPrice += cartItemPrice; // atualiza o preço total no carrinho
-  idCartTotalPrice.innerText = totalPrice.toFixed(2); // fixa duas casas decimais
+  idCartTotalPrice.innerText = totalPrice; // atualiza o preço total na página HTML
 };
 
 /*
